@@ -18,7 +18,7 @@ type ProductDetailScreenRouteProp = RouteProp<
 
 const ProductDetailScreen: React.FC = () => {
   const route = useRoute<ProductDetailScreenRouteProp>();
-  const {product} = route.params; // Get the product passed from HomeScreen
+  const {product} = route.params;
   const {addToCart} = useCart();
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 

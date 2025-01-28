@@ -6,6 +6,8 @@ import {
   ActivityIndicator,
   RefreshControl,
   Pressable,
+  Platform,
+  ToastAndroid,
 } from 'react-native';
 import {fetchProducts} from '../services/api';
 import {useCart} from '../context/CartContext';
@@ -19,11 +21,21 @@ const HomeScreen: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [isFetching, setIsFetching] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const {addToCart} = useCart();
 
+  const handleAddToCart = (product: Product) => {
+    addToCart(product);
+    if (Platform.OS === 'android') {
+      ToastAndroid.show('Product added to cart!', ToastAndroid.SHORT);
+    } else {
+      setSuccessMessage('Product added to cart!');
+      setTimeout(() => setSuccessMessage(null), 2000);
+    }
+  };
   // Fetch all products
   const loadProducts = useCallback(async () => {
     try {
@@ -56,10 +68,7 @@ const HomeScreen: React.FC = () => {
       <Pressable
         onPress={() => navigation.navigate('ProductDetail', {product: item})}>
         <Block card margin={10} padding={16} style={styles.productCard}>
-          {/* Product Image */}
           <Image source={{uri: image}} style={styles.productImage} />
-
-          {/* Product Title */}
           <Text h3 bold>
             {title}
           </Text>
@@ -79,7 +88,7 @@ const HomeScreen: React.FC = () => {
             ${price.toFixed(2)}
           </Text>
 
-          <Button title="Buy" onPress={() => addToCart(item)} />
+          <Button title="Buy" onPress={() => handleAddToCart(item)} />
         </Block>
       </Pressable>
     );
@@ -94,16 +103,23 @@ const HomeScreen: React.FC = () => {
   }
 
   return (
-    <FlatList
-      data={products}
-      keyExtractor={item => item.id.toString()}
-      renderItem={renderItem}
-      contentContainerStyle={styles.container}
-      refreshing={isRefreshing}
-      refreshControl={
-        <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
-      }
-    />
+    <Block flex>
+      {/* Success Message */}
+      {successMessage && (
+        <Text style={styles.successMessage}>{successMessage}</Text>
+      )}
+
+      <FlatList
+        data={products}
+        keyExtractor={item => item.id.toString()}
+        renderItem={renderItem}
+        contentContainerStyle={styles.container}
+        refreshing={isRefreshing}
+        refreshControl={
+          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+        }
+      />
+    </Block>
   );
 };
 
@@ -151,6 +167,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#007BFF',
     textDecorationLine: 'underline',
+  },
+  successMessage: {
+    position: 'absolute',
+    top: 16,
+    left: 0,
+    right: 0,
+    backgroundColor: '#28A745', // Green success color
+    color: '#FFF',
+    textAlign: 'center',
+    padding: 8,
+    borderRadius: 8,
+    marginHorizontal: 16,
+    zIndex: 10,
+    fontWeight: 'bold',
   },
 });
 
