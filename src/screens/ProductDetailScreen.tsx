@@ -1,5 +1,11 @@
 import React, {useState} from 'react';
-import {StyleSheet, Image, ScrollView, Platform, ToastAndroid} from 'react-native';
+import {
+  StyleSheet,
+  Image,
+  ScrollView,
+  Platform,
+  ToastAndroid,
+} from 'react-native';
 import {RouteProp, useRoute} from '@react-navigation/native';
 import {Block, Text, Button} from '../components';
 import {useCart} from '../context/CartContext';
@@ -46,6 +52,13 @@ const ProductDetailScreen: React.FC = () => {
           <Text p style={styles.productDescription}>
             {product.description}
           </Text>
+
+          <Block style={styles.ratingContainer}>
+            <Text style={styles.ratingText}>
+              ⭐ {product.rating.rate.toFixed(1)} ({product.rating.count}{' '}
+              reviews)
+            </Text>
+          </Block>
 
           <Text h3 bold style={styles.productPrice}>
             ${product.price.toFixed(2)}
@@ -100,6 +113,16 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginHorizontal: 16,
     zIndex: 10,
+    fontWeight: 'bold',
+  },
+  ratingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  ratingText: {
+    fontSize: 14,
+    color: '#FFD700',
     fontWeight: 'bold',
   },
 });

@@ -6,8 +6,6 @@ import {
   ActivityIndicator,
   RefreshControl,
   Pressable,
-  ToastAndroid,
-  Platform,
 } from 'react-native';
 import {fetchProducts} from '../services/api';
 import {useCart} from '../context/CartContext';
@@ -21,7 +19,6 @@ const HomeScreen: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [isFetching, setIsFetching] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null); // State for success message
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
@@ -53,37 +50,36 @@ const HomeScreen: React.FC = () => {
     await loadProducts(); // Reload all products
   };
 
-  const handleBuy = (item: Product) => {
-    addToCart(item);
-
-    // Display success message
-    if (Platform.OS === 'android') {
-      ToastAndroid.show('Product added to cart!', ToastAndroid.SHORT);
-    } else {
-      setSuccessMessage('Product added to cart!');
-      setTimeout(() => setSuccessMessage(null), 2000); // Clear success message after 2 seconds
-    }
-  };
-
-  const renderItem = ({item, index}: {item: Product; index: number}) => {
-    const {title, description, price, image} = item;
+  const renderItem = ({item}: {item: Product}) => {
+    const {title, description, price, image, rating} = item;
     return (
       <Pressable
         onPress={() => navigation.navigate('ProductDetail', {product: item})}>
         <Block card margin={10} padding={16} style={styles.productCard}>
+          {/* Product Image */}
           <Image source={{uri: image}} style={styles.productImage} />
 
+          {/* Product Title */}
           <Text h3 bold>
             {title}
           </Text>
+
           <Text p numberOfLines={2} style={styles.productDescription}>
             {description}
           </Text>
           <Text style={styles.viewDetailsText}>View Details</Text>
+
+          <Block style={styles.ratingContainer}>
+            <Text style={styles.ratingText}>
+              ⭐ {rating.rate.toFixed(1)} ({rating.count} reviews)
+            </Text>
+          </Block>
+
           <Text h4 bold style={styles.productPrice}>
             ${price.toFixed(2)}
           </Text>
-          <Button title="Buy" onPress={() => handleBuy(item)} />
+
+          <Button title="Buy" onPress={() => addToCart(item)} />
         </Block>
       </Pressable>
     );
@@ -98,21 +94,16 @@ const HomeScreen: React.FC = () => {
   }
 
   return (
-    <Block flex>
-      {successMessage && (
-        <Text style={styles.successMessage}>{successMessage}</Text>
-      )}
-      <FlatList
-        data={products}
-        keyExtractor={item => item.id.toString()}
-        renderItem={renderItem}
-        contentContainerStyle={styles.container}
-        refreshing={isRefreshing}
-        refreshControl={
-          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
-        }
-      />
-    </Block>
+    <FlatList
+      data={products}
+      keyExtractor={item => item.id.toString()}
+      renderItem={renderItem}
+      contentContainerStyle={styles.container}
+      refreshing={isRefreshing}
+      refreshControl={
+        <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+      }
+    />
   );
 };
 
@@ -124,6 +115,12 @@ const styles = StyleSheet.create({
   productCard: {
     borderRadius: 8,
     overflow: 'hidden',
+    backgroundColor: '#fff',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   productImage: {
     width: '100%',
@@ -140,25 +137,20 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     color: '#007BFF',
   },
+  ratingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 8,
+  },
+  ratingText: {
+    fontSize: 14,
+    color: '#FFD700',
+    fontWeight: 'bold',
+  },
   viewDetailsText: {
-    marginBottom: 8,
     fontSize: 14,
     color: '#007BFF',
     textDecorationLine: 'underline',
-  },
-  successMessage: {
-    position: 'absolute',
-    top: 16,
-    left: 0,
-    right: 0,
-    backgroundColor: '#28A745',
-    color: '#FFF',
-    textAlign: 'center',
-    padding: 8,
-    borderRadius: 8,
-    marginHorizontal: 16,
-    zIndex: 10,
-    fontWeight: 'bold',
   },
 });
 
